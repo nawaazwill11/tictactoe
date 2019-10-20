@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .root {
+            display: flex;
+            height: 80vh;
+            justify-content: center;
+            align-items: center;
+        }
+        .box {
+            display: grid;
+            grid-template-areas: 'a b c' 'd e f' 'g h i';
+            grid-auto-rows: 80px;
+            grid-auto-columns: 80px;
+        }
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 0.5px solid;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="root">
+            <div class="box">
+                <div class="cell" id="0"></div>
+                <div class="cell" id="1"></div>
+                <div class="cell" id="2"></div>
+                <div class="cell" id="10"></div>
+                <div class="cell" id="11"></div>
+                <div class="cell" id="12"></div>
+                <div class="cell" id="20"></div>
+                <div class="cell" id="21"></div>
+                <div class="cell" id="22"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var over = false; // Game state
+        
+        // id and played_cells by players, legal cells (cells that exists in any possible move) and the moves left to win
+        var players = [
+            {
+                id: 'X',
+                played_cells: [],
+                legal_cells: [],
+                moves: []
+            },
+            {
+                id: 'O',
+                played_cells: [],
+                legal_cells: [],
+                moves: []
+            },
+        ]; 
+        var cells = document.getElementsByClassName('cell'); // All cells
+        var turn = 0; // Current turn number. Modded for 0 and 1 results later in program
+        var played_cells = [] // All the cells been played
+        var moves_list = [
+            [0, 1, 2], [10, 11, 12], [20, 21, 22],
+            [0, 10, 20], [1, 11, 21], [2, 12, 22],
+            [0, 11, 22], [2, 11, 20]
+        ]; // Contains all the moves list
+        var current_player, cell, opponent;
+
+        // Adds events to cells.
+        window.addEventListener('load', function () {
+            for (let i = 0; i < cells.length; i++) {
+                cells[i].addEventListener('click', function () {
+                    cell = cells[i]
+                    play();
+                });
+            }
+        });
+
+        // The main function.
+        function play() {
+            if (! over){
+                place();
+            }
+        }
+
+        // Adds moves to players moves list.
+        function createMoves() {
+            pushToPlayedCell();
+            generateMoves();
+            console.log('current', current_player.moves)
+            console.log('opponent', opponent.moves);
+            popIllegal(); 
+            console.log('\n');
+            if (game()) {
+                play();
+            }
+        }
+        
+
+        function generateMoves() {
+            let set = new Set(current_player.moves);
+            moves_list.forEach(function (move) {
+                if (move.includes(Number(cell.id))) {
+                    set.add(move);
+                }
+            });
+            Array.from(set).forEach(function(item) {
+                moves_list = popArray(moves_list, item);
+            });
+            current_player.moves = Array.from(set);
+        }
+
+        function popArray(arr, item) {
+            if (arr.includes(item)) {
+                pos = arr.indexOf(item)
+                let popped = arr[pos];
+                if (pos == 0) {
+                    arr.shift();
+                }
+                else if (pos > 0) {
+                    arr = arr.slice(0, pos).concat(arr.slice(pos + 1,));
+                }
+                else if(pos == arr.length - 1) {
+                    arr.pop();
+                }
+                
+            }
+            return arr;
+        }
+
+        
+
+        // Pushes current cell id into played played and legal cell lists.
+        function pushToPlayedCell() {
+            let id = Number(cell.id);
+            current_player.played_cells.push(id);
+            current_player.legal_cells.push(id);
+            current_player.legal_cells.sort();
+            matchPop(id);          
+        }
+        function game() {
+            if (current_player.legal_cells.length >= 3) {
+                for (let i = 0; i < current_player.moves.length; i++) {
+                    let match_count = 0
+                    for (let j = 0; j < current_player.legal_cells.length; j++) {
+                        if (current_player.moves[i].includes(current_player.legal_cells[j])) {
+                            match_count++;
+                        }
+                    }
+                    if (match_count == 3) {
+                        alert(`Player ${current_player.id} wins`);
+                        gameOver();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function popIllegal() {
+            for (let i = current_player.legal_cells.length - 1; i >= 0; i--) {
+                let match = false;
+                for (let j = current_player.moves.length - 1; j >= 0 ; j--) {
+                    // console.log(current_player.moves[j].includes(current_player));
+                    if (current_player.moves[j].includes(current_player.legal_cells[i])) {
+                        match = true;
+                        break
+                    } 
+                }
+                if (! match) {
+                    console.log('illegal popped', current_player.legal_cells[i]);
+                    current_player.legal_cells = popArray(current_player.legal_cells, current_player.legal_cells[i]);
+                }
+            }
+            console.log(`current_player legal_cells`, current_player.legal_cells);
+        }
+
+        function matchPop(cell) {
+            for(let i = opponent.moves.length - 1; i >= 0; i--) {
+                if(opponent.moves[i].includes(cell)) {
+                    opponent.moves = popArray(opponent.moves, opponent.moves[i]);
+                }
+            }
+        }
+
+        
+        // Places player's character on screen.
+        function place() {
+            if (movesLeft()){
+                if (! placeMove()){
+                    console.log(`${cell.id} already played by ${cell.innerText}`);
+                }
+                else {
+                    createMoves(); // Now, create moves for this cell.
+                }
+            }
+        }
+        
+        function placeMove() {
+            if (! played_cells.includes(cell.id)){
+                current_player = players[turn % 2];
+                ++turn;
+                opponent = players[turn % 2];
+                played_cells.push(cell.id); // Adds current cell to played_cell list to avoid repetative move on the same cell.
+                cell.innerText = current_player.id;
+                // console.log(`${current_player.id} played at ${cell.id}`);
+                return true
+            }
+            return false
+        }
+
+        // Checks if any moves are left to play.
+        function movesLeft() {
+            if (played_cells.length == 8) {
+                alert('Match is draw');
+                placeMove();
+                gameOver();
+                return false;
+            }
+            return true;
+        }
+
+        // Ends the game.
+        function gameOver() {
+            over = true;
+            Array.from(cells).forEach(function(cell){
+                cell.style.cursor = 'not-allowed';
+            })
+            console.log('Game Over');
+        }
+
+    </script>
+    
+</body>
+</html>
