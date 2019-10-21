@@ -1,0 +1,30 @@
+1. Initialize the following global variables:
+    1. For saving the state of the game. Boolean.
+    2. An object containing a list of players information for each player i.e. X and O, such as:
+        1. id - stores the character of the player.
+        2. played_cells - stores a list of cell id's the user selected during the play.
+        3. legal_cells - contains a list of the cell id's the user selected, same as above. But the values are removed if corresponding move is deleted from the moves list (see below). The legal cells form the winning combination.
+        4. moves - stores the moves corresponding player has to win the game.
+    3. An list storing access/pointers to each cells.
+    4. A variable to store information about the active player.
+    5. A list to store all the cells that have been played upon.
+    6. Declartion of global variable for the active cell, the current player and the opponent.
+    7. A list containing list that contains all the moves for winning the game.
+2. Flow:
+    1. Select a cell to place players move and get it's id.
+    2. Check the running state of the game, if its active, continue to the next step else, exit.
+    3. Check if there are any cell left to place the next move using the global played_cell variable. If places exists, continue to next step, else exit.
+    4. Assign the first index of players object to the current_player variable, and the other one to the opponent. Also, assign the selected cell properties to a variable called cell. Use this formula:
+        current_player = players[turn % 2];
+        turn++;
+        opponent = players[turn % 2];
+        //where turn is the intially zero.
+    5. Push the the current cell's id to the played_cell list.
+    6. Next, push this id the played_cells list to maintain the information of all the moves played by the player.
+    7. Push the active/current cell to legal_cells, and played_cells of the players object.
+    8. Pop all the moves from the moves list of the opponent containing the cell id of the currently selected cell selectd by the current player.
+    9. Add new moves for the current player (in current player's moves list) by selecting the moves containing the cell id of the currently selected cell from the global moves_list and remove them from moves_list.
+    10. Removes all cell ids from the legal_cells list which aren't in any move of the moves_list of the current player.
+    11. Next, check if the length of legal_cells of current player is greater than or equal to 3. If it is, then count the number of cell ids in legal cells list that match the available moves in the moves list of the current player. If legal_cells ids match any move (completely), declare the current player as the winner of the game.
+    12. Else, repeat from 1 to 11 until there are no moves left.
+    13. When there are no moves left, declare the match to be a draw.
