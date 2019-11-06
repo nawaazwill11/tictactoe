@@ -291,7 +291,7 @@
                     }
                     if (match_count == 3) {
                         alert(`Player ${current_player.id} wins`);
-                        udpateScore();
+                        updateScore();
                         gameOver();
                         return true;
                     }
@@ -301,7 +301,7 @@
         }
 
 
-        function udpateScore() {
+        function updateScore() {
             let score = current_player.score() + 1;
             
             document.getElementById(current_player.id.toLowerCase()).innerText = score;
